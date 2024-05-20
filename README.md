@@ -8,11 +8,11 @@ using Lazy:
 
 ```lua
 return {
-	"abql/mdpreview",
+    "abql/mdpreview",
 }
 ```
 
-Also ensure that the binary is included in your $PATH (see [How It Works](#how-it-works)).
+Also ensure that the binary is included in your $PATH (see [How This Works](#how-this-works)).
 
 ## Usage
 
@@ -26,14 +26,14 @@ There are relatively few options:
 
 ```lua
 return {
-	"abql/mdpreview",
+    "abql/mdpreview",
 
-	config = function()
-		require("mdpreview").setup({
-			on_event = "LeaveInsert",  -- reload trigger event
-			scrolling = false,  -- off by default	
-		})
-	end
+    config = function()
+        require("mdpreview").setup({
+            on_event = "LeaveInsert",  -- reload trigger event
+            scrolling = false,  -- off by default
+	})
+    end
 }
 ```
 You can specify any of neovim's events for the reload method (see `:h events`).
