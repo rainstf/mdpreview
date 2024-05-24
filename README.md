@@ -30,7 +30,7 @@ return {
 
     config = function()
         require("mdpreview").setup({
-            on_event = "LeaveInsert",  -- reload trigger event
+            on_event = "InsertLeave",  -- reload trigger event
             scrolling = false,  -- off by default
 	})
     end
