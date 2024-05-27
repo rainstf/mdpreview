@@ -44,6 +44,6 @@ To update the page content on each keystroke, set on_event to "TextChangedI".
 
 This plugin consists of two main components: a Lua script and a Go binary.
 
-There is no pre-built binary provided with this plugin, so you will have to build it from source.
+There is no pre-built binary provided with this plugin, so you will have to build it from source. The binary is included in this repo (this is not a particularly good way to handle this, I know). 
 
 Once both components are set up, calling the `:MdPrev` command from neovim will load any configuration changes and call the binary. The text written in the current buffer in neovim will then be sent (on the specified event) to the binary via a [nvim channel](https://neovim.io/doc/user/channel.html). The binary then converts the text (hopefully markdown) into HTML and sends it to the client (your browser) using [Server Sent Events (SSE)](https://html.spec.whatwg.org/multipage/server-sent-events.html).
