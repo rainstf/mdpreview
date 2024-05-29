@@ -97,7 +97,8 @@ end
 
 function ShowCursorPos()
 	local last_line = vim.fn.line("$")
-	local current_line = vim.api.nvim_win_get_cursor(0)[1]
+	-- local current_line = vim.api.nvim_win_get_cursor(0)[1]
+	local current_line = vim.fn.line("w0")
 	local position = current_line/last_line
 
 	return position
