@@ -18,7 +18,8 @@ Also ensure that the binary is included in your $PATH (see [How This Works](#how
 
 Calling `:MdPrev` will attempt to render the current buffer to HTML and display it in your $BROWSER
 
-Please note that the synchronized scrolling feature is experimental and may not be 100% accurate.
+> [!NOTE]
+> The synchronized scrolling feature is experimental and may not be 100% accurate.
 
 ## Configuration
 
