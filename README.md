@@ -8,7 +8,7 @@ using Lazy:
 
 ```lua
 return {
-    "framesper/mdpreview",
+    "bunkrat/mdpreview",
 }
 ```
 
@@ -27,7 +27,7 @@ There are relatively few options:
 
 ```lua
 return {
-    "framesper/mdpreview",
+    "bunkrat/mdpreview",
 
     config = function()
         require("mdpreview").setup({
