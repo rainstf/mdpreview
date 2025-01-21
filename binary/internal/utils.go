@@ -2,15 +2,47 @@ package internal
 
 import (
 	"encoding/json"
-	"github.com/gomarkdown/markdown"
+
+    "github.com/yuin/goldmark"
+    "github.com/yuin/goldmark/extension"
+    "github.com/yuin/goldmark/parser"
+    "github.com/yuin/goldmark/renderer/html"
+	highlighting "github.com/yuin/goldmark-highlighting/v2"
+	chromahtml "github.com/alecthomas/chroma/v2/formatters/html"
+	embed "github.com/13rac1/goldmark-embed"
+
+	"bytes"
 	"fmt"
 )
 
 func ToMarkdown(input string) string {
-	md := []byte(input)
+	md := goldmark.New(
+		goldmark.WithExtensions(
+			embed.New(),
+			extension.GFM,
+			highlighting.NewHighlighting(
+				highlighting.WithStyle("monokai"),
+				highlighting.WithFormatOptions(
+					chromahtml.WithLineNumbers(true),
+				),
+			),
+		),
 
-	html := markdown.ToHTML(md, nil, nil)
-	return string(html)
+		goldmark.WithParserOptions(
+			parser.WithAutoHeadingID(),
+		),
+
+		goldmark.WithRendererOptions(
+			html.WithHardWraps(),
+			html.WithXHTML(),
+		),
+	)
+	var buf bytes.Buffer
+	if err := md.Convert([]byte(input), &buf); err != nil {
+		panic(err)
+	}
+
+	return buf.String()
 }
 
 type Obj struct {
