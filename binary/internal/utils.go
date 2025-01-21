@@ -7,9 +7,11 @@ import (
     "github.com/yuin/goldmark/extension"
     "github.com/yuin/goldmark/parser"
     "github.com/yuin/goldmark/renderer/html"
+
 	highlighting "github.com/yuin/goldmark-highlighting/v2"
 	chromahtml "github.com/alecthomas/chroma/v2/formatters/html"
 	embed "github.com/13rac1/goldmark-embed"
+	img64 "github.com/tenkoh/goldmark-img64"
 
 	"bytes"
 	"fmt"
@@ -19,6 +21,7 @@ func ToMarkdown(input string) string {
 	md := goldmark.New(
 		goldmark.WithExtensions(
 			embed.New(),
+			img64.Img64,
 			extension.GFM,
 			highlighting.NewHighlighting(
 				highlighting.WithStyle("monokai"),
@@ -41,12 +44,11 @@ func ToMarkdown(input string) string {
 	if err := md.Convert([]byte(input), &buf); err != nil {
 		panic(err)
 	}
-
 	return buf.String()
 }
 
 type Obj struct {
-	Event string `json:"event"`
+	Event   string `json:"event"`
 	Content string `json:"content"`
 }
 
@@ -84,7 +86,6 @@ func scripts() string {
 		  const data = event.data.replace(/<br>/g, "\n");
 		  let view = document.getElementById("container");
 		  view.innerHTML = data;
-		  console.log(event.data);
 		});
 
 	  evtSource.addEventListener("scroll", (event) => {
@@ -101,7 +102,6 @@ func scripts() string {
 			  left: 0,
 		  });
 
-		  console.log(yLoc);
 	  });
   </script>
   </head>
