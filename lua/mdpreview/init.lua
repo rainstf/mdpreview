@@ -1,17 +1,16 @@
-local async = require "plenary.async"
+local async = require'plenary.async'
 local Job = require'plenary.job'
-local libuv = vim.loop
 
-vim.api.nvim_create_user_command('MdPrev', 'lua Entry()', {})
-
+local SIGTERM = 15
 local M = {}
 
 local defaults = {
-	on_event = "InsertLeave",
+	on_event = 'InsertLeave',
     scrolling = false,
 }
-
 M.config = defaults
+
+vim.api.nvim_create_user_command('MdPrev', 'lua Entry()', {})
 
 function M.setup(user_options)
     user_options = user_options or {}
@@ -19,101 +18,96 @@ function M.setup(user_options)
         if M.config[key] ~= nil then
             M.config[key] = value
         else
-            error("Option " .. key .. " is not valid for this plugin.")
+            error('Option ' .. key .. ' is not valid for this plugin.')
         end
     end
 end
 
 function BufContent(buf)
 	local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-	local content = table.concat(lines, "\n")
+	local content = table.concat(lines, '\n')
 
 	return content
 end
 
 function create_json_obj(content, evtype) -- TODO: rename to data
 	local object = {
-		["content" ] = content,
-		["event" ] = evtype
+		['content' ] = content,
+		['event' ] = evtype
 	}
-	if evtype == "scroll" or evtype == "reload" or evtype == "init" then
+	if evtype == 'scroll' or evtype == 'reload' or evtype == 'init' then
 		return vim.json.encode(object)
 	end
 end
 
 function send_initial_content(chan_id)
-	local json = create_json_obj(BufContent(0), "init")
-	SendServer(chan_id, json)
+	local json = create_json_obj(BufContent(0), 'init')
+	server_send(chan_id, json)
 end
 
-function serveInit()
+function is_markdown()
+	return vim.filetype.match({ buf = 0 }) == 'markdown'
+end
 
-    local chan_id = vim.fn.sockconnect("tcp", "127.0.0.1:8080")
-
+function server_connect(address)
+    local chan_id = vim.fn.sockconnect('tcp', address)
 	send_initial_content(chan_id)
 
-	local event = M.config.on_event
-	vim.api.nvim_create_autocmd(event, {
+	-- transport events 
+	vim.api.nvim_create_autocmd(M.config.on_event, {
 		callback = function()
-			local json = create_json_obj(BufContent(0), "reload")
-			SendServer(chan_id, json)
+			if not is_markdown() then
+				print('MDPreview Failed! Reason: not a markdown file')
+				return
+			end
+			local json = create_json_obj(BufContent(0), 'reload')
+			server_send(chan_id, json)
 		end
 	})
-	vim.api.nvim_create_autocmd("TextChanged", {
+	vim.api.nvim_create_autocmd('TextChanged', {
 		callback = function()
-			local json = create_json_obj(BufContent(0), "reload")
-			SendServer(chan_id, json)
+			if not is_markdown() then
+				print('MDPreview Failed! Reason: not a markdown file')
+				return
+			end
+			local json = create_json_obj(BufContent(0), 'reload') -- provide option to lock to buffer(n)
+			server_send(chan_id, json)
 		end
 	})
 	local last_pos = 0
 	if M.config.scrolling == true then
-		vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
+		vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
 			callback = function()
-				if last_pos ~= ShowCursorPos() then
-					last_pos = ShowCursorPos()
-					local scroll_offset = tostring(ShowCursorPos())
-					local json = create_json_obj(scroll_offset, "scroll")
-					SendServer(chan_id, json)
+				if last_pos ~= fetch_cursor_pos() then
+					last_pos = fetch_cursor_pos()
+					local scroll_offset = tostring(fetch_cursor_pos())
+					local json = create_json_obj(scroll_offset, 'scroll')
+					server_send(chan_id, json)
 				end
 			end
 		})
 	end
 end
 
-function SendServer(chan_id, object)
-	local payload = object .. "\n"
+function server_send(chan_id, object)
+	local payload = object .. '\n'
 	vim.fn.chansend(chan_id, payload)
 end
 
-function ShowCursorPos()
-	local last_line = vim.fn.line("$")
-	-- local current_line = vim.api.nvim_win_get_cursor(0)[1]
-	local current_line = vim.fn.line("w0")
+function fetch_cursor_pos()
+	local last_line = vim.fn.line('$')
+	local current_line = vim.fn.line('w0')
 	local position = current_line/last_line
-
 	return position
 end
 
-
-vim.api.nvim_create_autocmd({"VimLeavePre"}, {
-	-- plenary has yet to address this
-	-- https://github.com/nvim-lua/plenary.nvim/issues/156
-	callback = function()
-		vim.loop.kill(job.pid, 15)
-	end
-})
-
-vim.api.nvim_create_autocmd("BufDelete", {
-	buffer = vim.api.nvim_get_current_buf(),
-	callback = function()
-		print("[MDPreview] Buffer closed, stopping preview")
-		vim.loop.kill(job.pid, 15)
-	end,
-})
-
 function Entry()
 	if job then
-		print("[MDPreview] Failed! mdpreview is already running")
+		print('MDPreview Failed! Reason: mdpreview is already running')
+		return
+	end
+	if not is_markdown() then
+		print('MDPreview Failed! Reason: not a markdown file')
 		return
 	end
 
@@ -122,12 +116,28 @@ function Entry()
 		on_stdout = function(_, signal)
 			if signal:find('sig_start') then
 				vim.schedule(function()
-					serveInit()
+					server_connect('localhost:8080')
 				end)
 			end
 		end
 	})
 	job:start()
+
+	vim.api.nvim_create_autocmd({'VimLeavePre'}, {
+		-- plenary has yet to address this
+		-- https://github.com/nvim-lua/plenary.nvim/issues/156
+		callback = function()
+			vim.loop.kill(job.pid, SIGTERM)
+		end
+	})
+	-- kill server when buffer used to spawn it dies
+	vim.api.nvim_create_autocmd('BufDelete', {
+		buffer = vim.api.nvim_get_current_buf(),
+		callback = function()
+			print('MDPreview Shutdown: Buffer was closed')
+			vim.loop.kill(job.pid, SIGTERM)
+		end,
+	})
 end
 
 return M

@@ -1,1 +1,1 @@
-require("mdpreview")
+require"mdpreview"

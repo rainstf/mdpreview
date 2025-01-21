@@ -1,33 +1,21 @@
 # MD Preview
 
-MD Preview is a plugin for neovim that enables hot-reload rendering of markdown in the browser.
+Neovim plugin for hot-reload rendering of markdown in the browser.
 
-## Installation
+## Features
 
-using Lazy:
+## Dependencies
 
-```lua
-return {
-    "bunkrat/mdpreview",
-}
-```
+- Plenary
+- MDPreview binary
 
-Also ensure that the binary is included in your $PATH (see [How This Works](#how-this-works)).
+## Getting Started
 
-## Usage
-
-Calling `:MdPrev` will attempt to render the current buffer to HTML and display it in your $BROWSER
-
-> [!NOTE]
-> The synchronized scrolling feature is experimental and may not be 100% accurate.
-
-## Configuration
-
-There are relatively few options:
+Using [Lazy.nvim](https://github.com/folke/lazy.nvim)
 
 ```lua
 return {
-    "bunkrat/mdpreview",
+    "nolibc/mdpreview",
 
     config = function()
         require("mdpreview").setup({
@@ -37,6 +25,18 @@ return {
     end
 }
 ```
+
+Also ensure that the binary is included in your $PATH ([How This Works](#how-this-works)).
+
+## Usage
+
+Calling `:MdPrev` renders your current buffer to HTML, which is displayed in your browser.
+
+> [!NOTE]
+> Synchronized scrolling is experimental and may not be accurate.
+
+## Configuration
+
 You can specify any of neovim's events for the reload method (see `:h events`).
 
 To update the page content on each keystroke, set on_event to "TextChangedI".
