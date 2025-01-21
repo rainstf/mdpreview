@@ -1,6 +1,9 @@
+local async = require "plenary.async"
+local Job = require'plenary.job'
+local libuv = vim.loop
+
 vim.api.nvim_create_user_command('MdPrev', 'lua Entry()', {})
 
-local libuv = vim.loop
 local M = {}
 
 local defaults = {
@@ -28,28 +31,13 @@ function BufContent(buf)
 	return content
 end
 
-function create_json_obj(content, evtype)
-	local obj = {}
-
-	if evtype == "scroll" then
-		obj["event"] = "scroll"
-		obj["content"] = content
-
-		return vim.json.encode(obj)
-	end
-
-	if evtype == "reload" then
-		obj["event"] = "reload"
-		obj["content"] = content
-
-		return vim.json.encode(obj)
-	end
-
-	if evtype == "init" then
-		obj["event"] = "init"
-		obj["content"] = content
-
-		return vim.json.encode(obj)
+function create_json_obj(content, evtype) -- TODO: rename to data
+	local object = {
+		["content" ] = content,
+		["event" ] = evtype
+	}
+	if evtype == "scroll" or evtype == "reload" or evtype == "init" then
+		return vim.json.encode(object)
 	end
 end
 
@@ -59,7 +47,9 @@ function send_initial_content(chan_id)
 end
 
 function serveInit()
+
     local chan_id = vim.fn.sockconnect("tcp", "127.0.0.1:8080")
+
 	send_initial_content(chan_id)
 
 	local event = M.config.on_event
@@ -104,32 +94,32 @@ function ShowCursorPos()
 	return position
 end
 
-function killServer(child)
-	if child and not child:is_closing() then
-		child:kill(libuv.constants.SIGTERM)
+
+vim.api.nvim_create_autocmd({"VimLeavePre"}, {
+	-- plenary has yet to address this
+	-- https://github.com/nvim-lua/plenary.nvim/issues/156
+	callback = function()
+		vim.loop.kill(job.pid, 15)
 	end
-end
+})
 
 function Entry()
-	local child, _ = libuv.spawn("MDPreview", {}, function()end)
-	libuv.sleep(400)
+	if job then
+		print("Failed! mdpreview is already running")
+		return
+	end
 
-	serveInit()
-	local bufr = vim.api.nvim_get_current_buf()
-
-	vim.api.nvim_create_autocmd("BufDelete", {
-		buffer = bufr,
-		callback = function()
-			killServer(child)
-		end,
+	job = Job:new({
+		command = 'MDPreview',
+		on_stdout = function(_, signal)
+			if signal:find('sig_start') then
+				vim.schedule(function()
+					serveInit()
+				end)
+			end
+		end
 	})
-
-	vim.api.nvim_create_autocmd("VimLeavePre", {
-		callback = function()
-			killServer(child)
-		end,
-	})
-
+	job:start()
 end
 
 return M

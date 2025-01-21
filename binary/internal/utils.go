@@ -2,8 +2,8 @@ package internal
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/gomarkdown/markdown"
+	"fmt"
 )
 
 func ToMarkdown(input string) string {
@@ -40,9 +40,6 @@ func newPage() *Page {
   <meta charset="UTF-8" />
   <title>Live Preview</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-
-  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   `
 	return &Page{content: base}
 }
@@ -56,11 +53,6 @@ func scripts() string {
 	  let view = document.getElementById("container");
 	  view.innerHTML = data;
 	  console.log(event.data);
-
-	  MathJax.typesetPromise([view]).then(function() {
-        console.log('MathJax has finished typesetting!');
-	  }).catch(function(err) {
-      console.warn('MathJax typesetting failed:', err);
 	});
   });
   </script>

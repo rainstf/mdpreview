@@ -69,6 +69,7 @@ func StartServer() {
 		fmt.Printf("error: failed to listen on tcp port 8080: %s", err)
 	}
 
+	fmt.Println("sig_start")
 	go httpServer()
 
 	for {
@@ -100,11 +101,9 @@ func handleConnection(conn net.Conn) {
 			html := internal.ToMarkdown(json.Content)
 			fmt.Printf("%s\n", html)
 			initLayout = internal.LayoutPage(html)
-
 		case "scroll":
 			fmt.Printf("scrolling: %s\n", json.Content)
 			scrollChannel<-json.Content
-
 		case "reload":
 			html := internal.ToMarkdown(json.Content)
 			fmt.Printf("%s\n", html)
