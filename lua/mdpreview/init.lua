@@ -5,8 +5,10 @@ local SIGTERM = 15
 local M = {}
 
 local defaults = {
-	on_event = 'InsertLeave',
-    scrolling = false,
+	-- conn_timeout  = 500,
+	-- conn_attempts = 10,
+	on_event      = 'InsertLeave',
+    scrolling     = false,
 }
 M.config = defaults
 

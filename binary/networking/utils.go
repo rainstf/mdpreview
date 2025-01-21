@@ -6,11 +6,16 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"time"
 	"os/exec"
 	"net"
 	"net/http"
 	"strings"
 )
+
+const LocalHost = "localhost"
+const ChannelPort = ":8080"
+const WebServerPort = ":8000"
 
 var initLayout string
 
@@ -57,33 +62,50 @@ func launchBrowser() {
 	// display error message in neovim if no browser is found
 	val, isSet := os.LookupEnv("BROWSER")
 	if isSet {
-		exec.Command(val, "127.0.0.1:8000").Start()
+		exec.Command(val, LocalHost + WebServerPort).Start()
 	}
 }
 
-func httpServer(readyStatus chan bool) {
+func httpServer() {
 	http.HandleFunc("/", index)
 	http.HandleFunc("/events", events)
 
-	readyStatus <- true
-	err := http.ListenAndServe(":8000", nil)
+	// TODO: simulate lag; remove
+	// time.Sleep(14500*time.Millisecond)
+
+	err := http.ListenAndServe(WebServerPort, nil)
 
 	if errors.Is(err, http.ErrServerClosed) {
 		fmt.Printf("Failed to connect; server closed\n")
 	}
 }
 
+func waitForServer(address string, retries int, delay time.Duration) error {
+	for i := 0; i < retries; i++ {
+		conn, err := net.DialTimeout("tcp", address, delay)
+		if err == nil {
+			conn.Close()
+			return nil
+		}
+		time.Sleep(delay)
+	}
+	return fmt.Errorf("server not available at %s after %d retries", address, retries)
+}
+
 func StartServer() {
-	ln, err := net.Listen("tcp", ":8080")
+	ln, err := net.Listen("tcp", ChannelPort)
 	if err != nil {
-		fmt.Printf("error: failed to listen on tcp port 8080: %s\n", err)
+		fmt.Printf("error: failed to listen on tcp port %s: %s\n", ChannelPort, err)
 	}
 	fmt.Printf("\nsig_start\n")
 
-	readyStatus := make(chan bool)
-	go httpServer(readyStatus)
+	go httpServer()
 
-	<-readyStatus
+	er := waitForServer(LocalHost + WebServerPort, 10, 250*time.Millisecond)
+	if er != nil {
+		fmt.Printf("Failed to connect to webserver: %s\n", er)
+		os.Exit(1)
+	}
 	launchBrowser()
 
 	for {
