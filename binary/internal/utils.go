@@ -45,25 +45,23 @@ func newPage() *Page {
 }
 
 func scripts() string {
-  return `
-  <script>
+  return `<script>
   const evtSource = new EventSource("/events");
-  evtSource.addEventListener("reload", (event) => {
-	  const data = event.data.replace(/<br>/g, "\n");
-	  let view = document.getElementById("container");
-	  view.innerHTML = data;
-	  console.log(event.data);
-	});
-  });
-  </script>
-  <script>
+
+	  evtSource.addEventListener("reload", (event) => {
+		  const data = event.data.replace(/<br>/g, "\n");
+		  let view = document.getElementById("container");
+		  view.innerHTML = data;
+		  console.log(event.data);
+		});
+
 	  evtSource.addEventListener("scroll", (event) => {
 		  let percentAmount = parseFloat(event.data);
 		  var body = document.body,
-    	  html = document.documentElement;
+		  html = document.documentElement;
 
 		  var height = Math.max( body.scrollHeight, body.offsetHeight, 
-        	  html.clientHeight, html.scrollHeight, html.offsetHeight );
+			  html.clientHeight, html.scrollHeight, html.offsetHeight );
 		  
 		  let yLoc = percentAmount * height;
 		  window.scrollTo({

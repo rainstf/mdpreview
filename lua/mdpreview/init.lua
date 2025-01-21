@@ -103,9 +103,17 @@ vim.api.nvim_create_autocmd({"VimLeavePre"}, {
 	end
 })
 
+vim.api.nvim_create_autocmd("BufDelete", {
+	buffer = vim.api.nvim_get_current_buf(),
+	callback = function()
+		print("[MDPreview] Buffer closed, stopping preview")
+		vim.loop.kill(job.pid, 15)
+	end,
+})
+
 function Entry()
 	if job then
-		print("Failed! mdpreview is already running")
+		print("[MDPreview] Failed! mdpreview is already running")
 		return
 	end
 

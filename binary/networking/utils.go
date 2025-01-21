@@ -18,15 +18,16 @@ var messageChannel = make(chan string)
 var scrollChannel = make(chan string)
 
 func index(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "text/html")
+	w.Header().Set("Content-Type", "text/html")
 	spaData := strings.ReplaceAll(initLayout, "\t", "    ")
     fmt.Fprintf(w, spaData)
 }
 
 func events(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "text/event-stream")
-	w.Header().Add("X-Accel-Buffering", "no");
-	w.Header().Add("Cache-Control", "no-cache");
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("X-Accel-Buffering", "no");
+	w.Header().Set("Cache-Control", "no-cache");
+	w.Header().Set("Connection", "keep-alive")
 
 	var sendData = func(d string, ev string) {
 		escData := strings.ReplaceAll(d, "\n", "<br>")
@@ -56,7 +57,7 @@ func httpServer() {
 	http.HandleFunc("/", index)
 	http.HandleFunc("/events", events)
 
-	err := http.ListenAndServe("localhost:8000", nil)
+	err := http.ListenAndServe(":8000", nil)
 
 	if errors.Is(err, http.ErrServerClosed) {
 		fmt.Printf("Server Closed\n")
