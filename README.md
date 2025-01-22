@@ -15,6 +15,11 @@ Neovim plugin for hot-reload rendering of markdown in the browser.
 - **YouTube Embeds**: just as it sounds.
 - **Syntax Highlighting**: supports syntax-highlighting fenced code blocks.
 
+### Dependencies
+
+- [Plenary](https://github.com/nvim-lua/plenary.nvim)
+- [Go](https://go.dev/doc/install)
+
 ## Getting Started
 
 Using [Lazy.nvim](https://github.com/folke/lazy.nvim)
@@ -22,6 +27,7 @@ Using [Lazy.nvim](https://github.com/folke/lazy.nvim)
 ```lua
 return {
     "nolibc/mdpreview",
+    dependencies = { 'nvim-lua/plenary.nvim' },
     opts = {
         events = {
             reload_on = 'InsertLeave',
@@ -67,12 +73,6 @@ Ensure all dependencies the binary requires are downloaded. Then build it.
 
 Add it to a directory in PATH. This may require root privileges depending on the location.
 
-## Dependencies
-
-- [Plenary](https://github.com/nvim-lua/plenary.nvim)
-- [Go](https://go.dev/doc/install)
-- MDPreview server
-
 ## Configuration
 
 Configuration is currently limited.
@@ -86,14 +86,14 @@ opts = {
 }
 ```
 
+> [!WARNING]
+> Synchronized scrolling is experimental and may not be accurate.
+
 - `reload_on`: Neovim event used to reload the page.
-You can specify neovim events for the reload method (`:h events`).
+You may specify Neovim events (:h events) for the reload method.
 For instance, use 'TextChangedI' to update the page content on each keystroke.
 
 - `scrolling`: Controls automatically page scroll.
-
-> [!WARNING]
-> Synchronized scrolling is experimental and may not be accurate.
 
 ## How This Works
 
