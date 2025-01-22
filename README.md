@@ -35,7 +35,7 @@ return {
 }
 ```
 
-You may ommit the lazy-loading `keys` spec and call the user commands directly instead.
+You may omit the lazy-loading `keys` spec and call the user commands directly instead.
 
 
 ### Building MDPreview Server
@@ -57,15 +57,15 @@ Alternatively, you could execute the commands manually:
 
 1. `cd $HOME/.local/share/nvim/lazy/mdpreview/binary`
 
-In the above, we navigate to the directory the package manager cloned. For lazy.nvim, cloned plugins are usually found in ~/.local/share/nvim/lazy/
+Navigate to binary/ in the directory the package manager cloned. For lazy.nvim, cloned plugins are usually found in ~/.local/share/nvim/lazy/
 
 2. `go mod tidy && go build .`
 
-For step 2, we ensure all dependencies the binary requires are downloaded. We then build the binary executable file.
+Ensure all dependencies the binary requires are downloaded. Then build it.
 
 3. `sudo cp ./MDPreview /usr/bin`
 
-Step 2 gave us the binary file. We now need to add it do a directory in our PATH. This may require root privileges depending on where you want to move it.
+Add it to a directory in PATH. This may require root privileges depending on the location.
 
 ## Dependencies
 
@@ -101,6 +101,6 @@ MDPreview consists of two components—a Lua script and a Go binary.
 
 **Why It Matters**: Understanding the plugin and web server interaction is crucial if you encounter difficulties.
 
-Once both components are installed, you can interact with the plugin via its Lua API. The server comes in the form of a binary executable and is spawned as a user process. To do this, Lua code tries to find the MDPreview binary in your system PATH. Configuration changes are loaded upon spawning the server. Once running, text written in the current buffer will then be sent— on the reload event—to the server over an [nvim channel](https://neovim.io/doc/user/channel.html). Next, the server converts the text to HTML and finally gives it to the client (your browser) using [Server Sent Events (SSE)](https://html.spec.whatwg.org/multipage/server-sent-events.html).
+Once both components are installed, you can interact with the plugin via its Lua API. The server is a binary executable and is spawned as a user process. This is handled by the Lua component. Configuration changes are loaded upon spawning the server.
 
-There isn't a pre-built server binary, so you'll need to build it from source. This requires you to have Go installed on your system.
+Text written in the current buffer will be sent—on the reload event—to the server over an [nvim channel](https://neovim.io/doc/user/channel.html). The server converts the text to HTML and gives it to the client (your browser) using [Server Sent Events (SSE)](https://html.spec.whatwg.org/multipage/server-sent-events.html). It is then rendered by the client.
