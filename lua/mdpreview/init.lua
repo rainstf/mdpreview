@@ -5,24 +5,32 @@ local SIGTERM = 15
 local M = {}
 
 local defaults = {
-	-- conn_timeout  = 500,
-	-- conn_attempts = 10,
-	on_event      = 'InsertLeave',
-    scrolling     = false,
+	server = {
+		conn_timeout  = 500,
+		conn_attempts = 10,
+	},
+	events = {
+		reload_on = 'InsertLeave',
+		scrolling = false,
+	},
 }
 M.config = defaults
 
-vim.api.nvim_create_user_command('MdPrev', 'lua Entry()', {})
+vim.api.nvim_create_user_command('MdPreviewStart', 'lua Entry()', {})
+vim.api.nvim_create_user_command('MdPreviewStop', 'lua Stop()', {})
 
 function M.setup(user_options)
-    user_options = user_options or {}
-    for key, value in pairs(user_options) do
-        if M.config[key] ~= nil then
-            M.config[key] = value
-        else
-            error('Option ' .. key .. ' is not valid for this plugin.')
-        end
-    end
+	local function merge(defaults, overrides)
+		for k, v in pairs(overrides) do
+			if type(defaults[k]) == "table" and type(v) == "table" then
+				merge(defaults[k], v)
+			else
+				defaults[k] = v
+			end
+		end
+	end
+	user_options = user_options or {}
+	merge(M.config, user_options)
 end
 
 function BufContent(buf)
@@ -32,7 +40,7 @@ function BufContent(buf)
 	return content
 end
 
-function create_json_obj(content, evtype) -- TODO: rename to data
+function create_json_obj(content, evtype)
 	local object = {
 		['content' ] = content,
 		['event' ] = evtype
@@ -52,11 +60,11 @@ function is_markdown()
 end
 
 function server_connect(address)
-    local chan_id = vim.fn.sockconnect('tcp', address)
+	local chan_id = vim.fn.sockconnect('tcp', address)
 	send_initial_content(chan_id)
 
 	-- transport events 
-	vim.api.nvim_create_autocmd(M.config.on_event, {
+	vim.api.nvim_create_autocmd(M.config.events.reload_on, {
 		callback = function()
 			if not is_markdown() then
 				print('MDPreview Failed! Reason: not a markdown file')
@@ -72,12 +80,12 @@ function server_connect(address)
 				print('MDPreview Failed! Reason: not a markdown file')
 				return
 			end
-			local json = create_json_obj(BufContent(0), 'reload') -- provide option to lock to buffer(n)
+			local json = create_json_obj(BufContent(0), 'reload')
 			server_send(chan_id, json)
 		end
 	})
 	local last_pos = 0
-	if M.config.scrolling == true then
+	if M.config.events.scrolling == true then
 		vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
 			callback = function()
 				if last_pos ~= fetch_cursor_pos() then
@@ -140,6 +148,16 @@ function Entry()
 			vim.loop.kill(job.pid, SIGTERM)
 		end,
 	})
+end
+
+function Stop()
+    if job then
+        vim.loop.kill(job.pid, SIGTERM)
+        print("MDPreview stopped")
+        job = nil
+    else
+        print("MDPreview is not running.")
+    end
 end
 
 return M

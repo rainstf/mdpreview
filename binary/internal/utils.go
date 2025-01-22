@@ -38,6 +38,7 @@ func ToMarkdown(input string) string {
 		goldmark.WithRendererOptions(
 			html.WithHardWraps(),
 			html.WithXHTML(),
+			html.WithUnsafe(),
 		),
 	)
 	var buf bytes.Buffer

@@ -58,11 +58,21 @@ func events(w http.ResponseWriter, r *http.Request) {
 }
 
 func launchBrowser() {
-	// TODO: list of browsers in case $BROWSER env var isn't set
-	// display error message in neovim if no browser is found
+	url := "http://127.0.0.1" + WebServerPort
+
 	val, isSet := os.LookupEnv("BROWSER")
 	if isSet {
 		exec.Command(val, LocalHost + WebServerPort).Start()
+		return
+	}
+
+	fallbackBrowsers := [7]string{"chromium", "firefox", "firefox-esr", "brave", "brave-bin", "floorp", "floorp-bin"}
+	for _, browser := range fallbackBrowsers {
+		path, err := exec.LookPath(browser)
+		if err == nil {
+			exec.Command(path, url).Start()
+			return
+		}
 	}
 }
 
@@ -70,11 +80,7 @@ func httpServer() {
 	http.HandleFunc("/", index)
 	http.HandleFunc("/events", events)
 
-	// TODO: simulate lag; remove
-	// time.Sleep(14500*time.Millisecond)
-
 	err := http.ListenAndServe(WebServerPort, nil)
-
 	if errors.Is(err, http.ErrServerClosed) {
 		fmt.Printf("Failed to connect; server closed\n")
 	}
@@ -119,7 +125,6 @@ func StartServer() {
 
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
-
 	scanner := bufio.NewScanner(conn)
 
 	for scanner.Scan() {
