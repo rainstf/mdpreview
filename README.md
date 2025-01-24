@@ -10,10 +10,10 @@ Neovim plugin for hot-reload rendering of markdown in the browser.
 
 ## Features
 
-- **CommonMark**: uses [goldmark](https://pkg.go.dev/github.com/yuin/goldmark@v1.7.8) which is compliant with CommonMark 0.31.2.
+- **CommonMark**: uses [goldmark](https://pkg.go.dev/github.com/yuin/goldmark@v1.7.8), which is CommonMark 0.31.2 compliant.
+- **Hackable**: a tiny codebase makes it easy to modify and extend.
 - **Images**: embed local images with base64 encoding.
-- **YouTube Embeds**: just as it sounds.
-- **Syntax Highlighting**: supports syntax-highlighting fenced code blocks.
+- **Syntax Highlighting**: highlight fenced code blocks.
 
 ### Dependencies
 
@@ -46,7 +46,7 @@ You may omit the lazy-loading `keys` spec and call the user commands directly in
 
 ### Building MDPreview Server
 
-This plugin uses a binary executable file to communicate with Neovim and host a web server. It does not come pre-built, so you'll need a Go compiler to build it.
+This plugin uses a binary executable file to communicate with Neovim and host a web server. It does not come pre-built, so you will need a Go compiler to build it
 
 > [!CAUTION]
 > Before running anything, please verify its contents. It's never a good idea to blindly execute scripts/commands—especially ones found on the internet.
@@ -55,11 +55,11 @@ This plugin uses a binary executable file to communicate with Neovim and host a 
 cd $HOME/.local/share/nvim/lazy/mdpreview && bash ./install.sh
 ```
 
-The above shell command will automate the build and install process. But doing it manually is probably safer.
+The above shell command automates the build and install process, but performing it manually might be safer.
 
 ### Build It Manually
 
-Alternatively, you could execute the commands manually:
+Alternatively, you could execute the commands:
 
 1. `cd $HOME/.local/share/nvim/lazy/mdpreview/binary`
 
@@ -72,6 +72,8 @@ Ensure all dependencies the binary requires are downloaded. Then build it.
 3. `sudo cp ./MDPreview /usr/bin`
 
 Add it to a directory in PATH. This may require root privileges depending on the location.
+
+**If uninstalling**, remember to delete the binary executable.
 
 ## Configuration
 
@@ -93,14 +95,28 @@ opts = {
 You may specify Neovim events (:h events) for the reload method.
 For instance, use 'TextChangedI' to update the page content on each keystroke.
 
-- `scrolling`: Controls automatically page scroll.
+- `scrolling`: Controls automatic page scroll.
+
+### Extending Functionality / Design
+
+The small codebase makes hacking on MDPreview simple and ensures only essential features get implemented. Currently, there's only ~500 LOC and the project will likely never exceed 1k SLOC.
+
+<br>
+
+**For example**, to change the appearance of the web page, simply modify the CSS in `binary/internal/css.go`.
+
+To extend the markdown parser's functionality, view the [list of extensions](https://pkg.go.dev/github.com/yuin/goldmark#readme-list-of-extensions).
 
 ## How This Works
 
 MDPreview consists of two components—a Lua script and a Go binary.
 
-**Why It Matters**: Understanding the plugin and web server interaction is crucial if you encounter difficulties.
+**Why It Matters**: Understanding the plugin-server interaction is crucial if you encounter issues.
 
-Once both components are installed, you can interact with the plugin via its Lua API. The server is a binary executable and is spawned as a user process. This is handled by the Lua component. Configuration changes are loaded upon spawning the server.
+Once both components are set up, you can interact with the plugin via its Lua API. The server, a binary executable file, is spawned as a user process and managed by the Lua component. Configuration changes are loaded when the server is spawned. Importantly, these three actions kill the server:
 
-Text written in the current buffer will be sent—on the reload event—to the server over an [nvim channel](https://neovim.io/doc/user/channel.html). The server converts the text to HTML and gives it to the client (your browser) using [Server Sent Events (SSE)](https://html.spec.whatwg.org/multipage/server-sent-events.html). It is then rendered by the client.
+1. Closing the buffer from which it was spawned.
+1. Calling the MdPreviewStop command.
+1. Neovim Closing.
+
+The buffer's content is sent—on the reload event—to the server over an [nvim channel](https://neovim.io/doc/user/channel.html). The server converts the markdown into HTML and sends it to the client (your browser) for rendering using [Server Sent Events (SSE)](https://html.spec.whatwg.org/multipage/server-sent-events.html).

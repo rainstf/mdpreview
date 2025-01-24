@@ -24,11 +24,12 @@ var scrollChannel  = make(chan string)
 
 func index(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
-	spaData := strings.ReplaceAll(initLayout, "\t", "    ")
-    fmt.Fprintf(w, spaData)
+	sanitizedData := strings.ReplaceAll(initLayout, "\t", "    ")
+    fmt.Fprintf(w, sanitizedData)
 }
 
-func events(w http.ResponseWriter, r *http.Request) {
+func eventHandler(w http.ResponseWriter, r *http.Request) {
+    // packet headers
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("X-Accel-Buffering", "no");
 	w.Header().Set("Cache-Control", "no-cache");
@@ -36,24 +37,24 @@ func events(w http.ResponseWriter, r *http.Request) {
 
 	var sendData = func(d string, ev string) {
 		escData := strings.ReplaceAll(d, "\n", "<br>")
-		spaData := strings.ReplaceAll(escData, "\t", "    ")
+		sanitizedData := strings.ReplaceAll(escData, "\t", "    ")
 
 		fmt.Fprintf(w, "event: %s\n", ev)
-		fmt.Fprintf(w, "data: %s\n\n", spaData)
+		fmt.Fprintf(w, "data: %s\n\n", sanitizedData)
 
 		w.(http.Flusher).Flush()
 	}
 	for {
-		select {
-			case msg := <-messageChannel:
-				sendData(msg, "reload")
+        select {
+        case msg := <-messageChannel:
+            sendData(msg, "reload")
 
-			case scroll := <-scrollChannel:
-				sendData(scroll, "scroll")
+        case scroll := <-scrollChannel:
+            sendData(scroll, "scroll")
 
-			case <-r.Context().Done():
-				return
-		}
+        case <-r.Context().Done():
+            return
+        }
 	}
 }
 
@@ -78,7 +79,7 @@ func launchBrowser() {
 
 func httpServer() {
 	http.HandleFunc("/", index)
-	http.HandleFunc("/events", events)
+	http.HandleFunc("/events", eventHandler)
 
 	err := http.ListenAndServe(WebServerPort, nil)
 	if errors.Is(err, http.ErrServerClosed) {

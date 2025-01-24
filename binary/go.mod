@@ -3,7 +3,6 @@ module MDPreview
 go 1.22.2
 
 require (
-	github.com/13rac1/goldmark-embed v0.0.0-20201220231550-e6806f2de66a
 	github.com/alecthomas/chroma/v2 v2.15.0
 	github.com/tenkoh/goldmark-img64 v0.1.2
 	github.com/yuin/goldmark v1.7.8

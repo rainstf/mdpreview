@@ -1,5 +1,3 @@
-github.com/13rac1/goldmark-embed v0.0.0-20201220231550-e6806f2de66a h1:97tpPJ82VuexbkbPLIzF4BrPy/4XalKF1CKyMFc1fs0=
-github.com/13rac1/goldmark-embed v0.0.0-20201220231550-e6806f2de66a/go.mod h1:dxt3ggQZ3euHiXGfETfZPfA5OUpKgJn1s4vS+YT1MEU=
 github.com/alecthomas/assert/v2 v2.11.0 h1:2Q9r3ki8+JYXvGsDyBXwH3LcJ+WK5D0gc5E8vS6K3D0=
 github.com/alecthomas/assert/v2 v2.11.0/go.mod h1:Bze95FyfUr7x34QZrjL+XP+0qgp/zg8yS+TtBj1WA3k=
 github.com/alecthomas/chroma/v2 v2.2.0/go.mod h1:vf4zrexSH54oEjJ7EdB65tGNHmH3pGZmVkgTP5RHvAs=
@@ -23,7 +21,6 @@ github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/tenkoh/goldmark-img64 v0.1.2 h1:z2LX9PycENbXdAUQKwk0fyKGxuQ04wWnKHLnYOtZSVU=
 github.com/tenkoh/goldmark-img64 v0.1.2/go.mod h1:m3Z5ytQWSf1Lcdv2cXWXSRB7epGz5ka7kUeXTDSgDwk=
-github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.4.15/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
 github.com/yuin/goldmark v1.7.8 h1:iERMLn0/QJeHFhxSt3p6PeN9mGnvIKSpG9YYorDMnic=
 github.com/yuin/goldmark v1.7.8/go.mod h1:uzxRWxtg69N339t3louHJ7+O03ezfj6PlliRlaOzY1E=

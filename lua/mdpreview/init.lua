@@ -1,7 +1,6 @@
 local async = require'plenary.async'
 local Job = require'plenary.job'
 
-local SIGTERM = 15
 local M = {}
 
 local defaults = {
@@ -14,10 +13,11 @@ local defaults = {
 		scrolling = false,
 	},
 }
+
 M.config = defaults
 
 vim.api.nvim_create_user_command('MdPreviewStart', 'lua Entry()', {})
-vim.api.nvim_create_user_command('MdPreviewStop', 'lua Stop()', {})
+vim.api.nvim_create_user_command('MdPreviewStop',  'lua Stop()',  {})
 
 function M.setup(user_options)
 	local function merge(defaults, overrides)
@@ -29,6 +29,7 @@ function M.setup(user_options)
 			end
 		end
 	end
+
 	user_options = user_options or {}
 	merge(M.config, user_options)
 end
@@ -50,24 +51,22 @@ function create_json_obj(content, evtype)
 	end
 end
 
-function send_initial_content(chan_id)
-	local json = create_json_obj(BufContent(0), 'init')
-	server_send(chan_id, json)
-end
-
 function is_markdown()
 	return vim.filetype.match({ buf = 0 }) == 'markdown'
 end
 
 function server_connect(address)
 	local chan_id = vim.fn.sockconnect('tcp', address)
-	send_initial_content(chan_id)
+
+    -- send intial content
+	local json = create_json_obj(BufContent(0), 'init')
+	server_send(chan_id, json)
 
 	-- transport events 
 	vim.api.nvim_create_autocmd(M.config.events.reload_on, {
 		callback = function()
 			if not is_markdown() then
-				print('MDPreview Failed! Reason: not a markdown file')
+				print('not a markdown file; ignoring')
 				return
 			end
 			local json = create_json_obj(BufContent(0), 'reload')
@@ -77,7 +76,7 @@ function server_connect(address)
 	vim.api.nvim_create_autocmd('TextChanged', {
 		callback = function()
 			if not is_markdown() then
-				print('MDPreview Failed! Reason: not a markdown file')
+                print('Mdpreview: not a markdown file; ignoring')
 				return
 			end
 			local json = create_json_obj(BufContent(0), 'reload')
@@ -107,17 +106,17 @@ end
 function fetch_cursor_pos()
 	local last_line = vim.fn.line('$')
 	local current_line = vim.fn.line('w0')
-	local position = current_line/last_line
-	return position
+
+	return current_line/last_line
 end
 
 function Entry()
 	if job then
-		print('MDPreview Failed! Reason: mdpreview is already running')
+		print('Mdpreview is already running; ignoring')
 		return
 	end
 	if not is_markdown() then
-		print('MDPreview Failed! Reason: not a markdown file')
+		print('Mdpreview: not a markdown file; ignoring')
 		return
 	end
 
@@ -137,26 +136,29 @@ function Entry()
 		-- plenary has yet to address this
 		-- https://github.com/nvim-lua/plenary.nvim/issues/156
 		callback = function()
-			vim.loop.kill(job.pid, SIGTERM)
+            Stop()
 		end
 	})
 	-- kill server when buffer used to spawn it dies
 	vim.api.nvim_create_autocmd('BufDelete', {
 		buffer = vim.api.nvim_get_current_buf(),
 		callback = function()
-			print('MDPreview Shutdown: Buffer was closed')
-			vim.loop.kill(job.pid, SIGTERM)
+            Stop('Mdpreview stopped because host-buffer was closed')
 		end,
 	})
 end
 
-function Stop()
+function Stop(msg)
     if job then
-        vim.loop.kill(job.pid, SIGTERM)
-        print("MDPreview stopped")
+        vim.loop.kill(job.pid, 15)
         job = nil
+        if msg ~= nil then
+            print(msg)
+        else
+            print('Mdpreview stopped')
+        end
     else
-        print("MDPreview is not running.")
+        print('Mdpreview is not running')
     end
 end
 

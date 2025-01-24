@@ -10,7 +10,6 @@ import (
 
 	highlighting "github.com/yuin/goldmark-highlighting/v2"
 	chromahtml "github.com/alecthomas/chroma/v2/formatters/html"
-	embed "github.com/13rac1/goldmark-embed"
 	img64 "github.com/tenkoh/goldmark-img64"
 
 	"bytes"
@@ -18,27 +17,27 @@ import (
 )
 
 func ToMarkdown(input string) string {
-	md := goldmark.New(
-		goldmark.WithExtensions(
-			embed.New(),
-			img64.Img64,
-			extension.GFM,
-			highlighting.NewHighlighting(
-				highlighting.WithStyle("monokai"),
-				highlighting.WithFormatOptions(
-					chromahtml.WithLineNumbers(true),
-				),
-			),
-		),
+    md := goldmark.New(goldmark.WithExtensions(
 
-		goldmark.WithParserOptions(
-			parser.WithAutoHeadingID(),
-		),
+            // extension list
+            img64.Img64,
+            extension.GFM,
+
+            // syntax highlighting extension config
+            highlighting.NewHighlighting(
+
+                highlighting.WithStyle("monokai"),
+                highlighting.WithFormatOptions( chromahtml.WithLineNumbers(true) ),
+
+            ),
+        ),
+
+		goldmark.WithParserOptions(parser.WithAutoHeadingID()),
 
 		goldmark.WithRendererOptions(
 			html.WithHardWraps(),
 			html.WithXHTML(),
-			html.WithUnsafe(),
+			html.WithUnsafe(),  // allow rendering of raw HTML in md file
 		),
 	)
 	var buf bytes.Buffer
@@ -48,6 +47,7 @@ func ToMarkdown(input string) string {
 	return buf.String()
 }
 
+// JSON Object sent over TCP. Events described in ../networking/utils
 type Obj struct {
 	Event   string `json:"event"`
 	Content string `json:"content"`
@@ -110,6 +110,7 @@ func scripts() string {
 <div id="container">`
 }
 
+// helper function for page layout
 func inject(p *Page, payload string) {
 	p.content += "\n" + payload
 }
