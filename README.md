@@ -26,7 +26,7 @@ Using [Lazy.nvim](https://github.com/folke/lazy.nvim)
 
 ```lua
 return {
-    "34-c/mdpreview",
+    "rainstf/mdpreview",
     dependencies = { 'nvim-lua/plenary.nvim' },
     opts = {
         events = {
